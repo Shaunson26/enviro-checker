@@ -1,0 +1,137 @@
+body { 
+  background-color: #462066;
+  color: #FCF4D9; 
+  font-family: 'Open Sans', sans-serif;
+}
+  
+nav {
+  display: none; 
+}
+
+.container-fluid {
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* visible selection box */
+.selectize-input {
+  border: 0px; 
+  border-radius:0px;
+  color: #462066;
+}
+
+/* selected box focused */
+.selectize-input.focus {
+  box-shadow: 0 0 8px #28BB94
+}
+
+/* visible selection box while active (dropdown open/selected) */
+.selectize-input.dropdown-active {
+  border-radius:0px; 
+  color:#462066;
+  }
+
+/* dropdown box */
+.selectize-dropdown.form-control {
+  color: #462066;
+  border: 0px solid black;
+  border-radius:0px;
+}
+
+/* highlighted value in dropdown box */
+.selectize-dropdown .active {
+  color: #462066; 
+  background-color:#FCF4D9;
+}
+.btn {background-color: white; color: #462066; font-weight: 700; border: 0px; border-radius:0px; }
+.btn:hover, .btn:focus {background-color: #462066; color: #FCF4D9; }
+
+/* modal stuffs */
+.modal-header, .modal-footer {border: 0;}
+.modal-content { background-color:#FCF4D9;color:#462066;border-radius:0px }
+.modal-footer > .btn { background-color: #462066; color: #FCF4D9; }
+
+#select-address-text-container {
+  text-align:center;
+}
+
+#select-address-text-container > h1 {
+  font-weight:700;
+}
+
+#select-address-selectize-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 8px;
+}
+
+#select-address-selectize-subcontainer {
+  background-color: #00AAA0;
+  padding:16px;
+}
+
+#select-address-button-container {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+#results-address-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background-color: #00AAA0;
+}
+
+#results-address-container > span {
+  color: #462066;
+  background-color: white;
+  padding: 6px;
+  width: 100%; 
+  margin-right: 8px;   
+}
+
+.h4-link {
+  color: #FFB85F;
+  font-size:12px;
+  cursor:help;
+}
+
+.ReactTable {
+  background-color: rgba(255, 255, 255, 0.65);
+  color: black
+}
+
+.mobile-result-container {
+  display: none;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+@media only screen and (max-width: 600px) {
+
+  #results-address-container {
+    flex-direction: column;
+  }
+  
+  #results-address-container > span {
+    display: flex;
+    flex-direction: column;
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+  
+  .ReactTable {
+    display: none !important;
+  }
+  
+  .mobile-result-container {
+    display: block;
+  }
+  
+}
+
+
+  

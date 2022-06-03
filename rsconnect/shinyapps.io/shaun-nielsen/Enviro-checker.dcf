@@ -1,0 +1,14 @@
+name: Enviro-checker
+title: Enviro-checker
+username:
+account: shaun-nielsen
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6377559
+bundleId: 5947370
+url: https://shaun-nielsen.shinyapps.io/Enviro-checker/
+when: 1653570701.28501
+lastSyncTime: 1653570701.28501
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: data/gnaf-full-address.rda|README.md|dev
