@@ -21,8 +21,8 @@
 #'   \item{STREET_NAME}{chr, street name}
 #'   \item{LOCALITY_NAME}{chr, locality or suburb name}
 #'   \item{POSTCODE}{int, postcode}
-#'   \item{LONGITUDE}{num, longitude of address}
-#'   \item{LATITUDE}{num, latitude of address}
+#'   \item{LONGITUDE}{int, longitude * 1e4 of address, int to save space, remember to convert back}
+#'   \item{LATITUDE}{int, latitude * 1e4 of address, int to save space, remember to convert back}
 #'   \item{MB_2016_CODE}{char, meshblock 2016 code}
 #' }
 #' @source \url{https://data.gov.au}
