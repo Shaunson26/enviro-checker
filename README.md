@@ -20,9 +20,22 @@ This dataset was originally found at:
 https://data.gov.au/data/dataset/geocoded-national-address-file-g-naf
 
 NSW addresses were extracted, and further simplified to contain only street address,
-along with lat/lon and meshb;ock code. See `R/gnaf.R` and `data/gnaf.rda`
+along with lat/lon and meshblock code (a small geographic boundary that an address
+resides in). See `R/gnaf.R` and `data/gnaf.rda`.
 
-## Shiny App
+## Data APIs
+
+Data is obtained from public NSW government sources - https://live.seed.nsw.gov.au/. The 
+data used here is from three Department of Planning and Environment datasets, for which
+there are arcGIS REST APIs:
+
+  - Urban heat island - [link](https://datasets.seed.nsw.gov.au/dataset/nsw-urban-heat-island-to-modified-mesh-block-2016)
+  
+  - Heat vulnerability index - [link](https://datasets.seed.nsw.gov.au/dataset/nsw-heat-vulnerability-index-to-abs-statistical-area-level-1-2016)
+  
+  - Urban vegetation cover - [link](https://datasets.seed.nsw.gov.au/dataset/nsw-urban-vegetation-cover-to-modified-mesh-block-2016")
+
+## The Shiny App
 
 - Uses a `navbarPage()` with search fields in the first tab and results in the second tab.
 The navbar is hidden to give the experience of two different pages
@@ -37,7 +50,6 @@ NSW government environmental data APIs using `httr2`. A few heat related ones we
 
 - `shinybusy` is used for data download modals, which take a few seconds.
 
-
 - The returned JSON data is wrangled using `dplyr` and then displayed
     - A `leaflet` map is used to show the location of the address using the lat/lon data
     - Environmental data obtain is displayed with `reactable` and simple bar plots (using HTML elements from `htmltools`)
@@ -48,6 +60,12 @@ NSW government environmental data APIs using `httr2`. A few heat related ones we
    
 - The results sections have a 'what is this?' link to describe the environmental 
 parameters (shamelessly cut and paste from the source). This is achieved using `shinyjs`.
+
+- I tried to use async programming for the data downloading, which seems to work but then I'm
+waiting on all the responses before continuing  ... hmmm
+
+- I've refactored the code as much as possible and use functions throughout. I have yet
+to use shiny modules here.
 
 
 

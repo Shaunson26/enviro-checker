@@ -1,7 +1,7 @@
 map_urban_heat_island_value <- function(x){
 
   attributes_labels <-
-    c('UHI_16_m' = 'Urban Heat Island (compared to non-urban vegetated reference)')
+    c('UHI_16_m' = 'Urban heat island')
 
   value_categories <-
     c('Cooler than baseline', '0-3 degrees warmer', '3-6 degrees warmer',
