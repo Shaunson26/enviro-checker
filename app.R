@@ -6,10 +6,6 @@ library(shinybusy)
 library(dplyr)
 library(leaflet)
 library(reactable)
-library(promises)
-library(future)
-
-plan(multisession)
 
 for (x in list.files('R/', full.names = T)) {
   source(x)
@@ -212,6 +208,7 @@ server <- function(input, output, session) {
   observeEvent(triggerDataPipeline(),
                ignoreInit = TRUE,
                handlerExpr = {
+                 
                  print('Finalising address')
                  
                  load('data/mb2016_to_sa12016.rda')
@@ -236,53 +233,29 @@ server <- function(input, output, session) {
                  print('Getting UHI')
                  
                  uhi_resp <-
-                   future({
-                     found_address %>%
-                       dplyr::pull(MB_2016_CODE) %>%
-                       get_urban_heat_island_value() %>%
-                       map_urban_heat_island_value() %>%
-                       add_uhi_css()
-                   })
+                   found_address %>%
+                   dplyr::pull(MB_2016_CODE) %>%
+                   get_urban_heat_island_value() %>%
+                   map_urban_heat_island_value() %>%
+                   add_uhi_css()
                  
                  print('Getting UVI')
                  
                  hvi_resp <-
-                   future({
-                     found_address %>%
-                       pull(SA1_MAINCODE_2016) %>%
-                       get_heat_vulnerability_index() %>%
-                       map_heat_vulnerability_index() %>%
-                       add_hvi_css()
-                   })
+                   found_address %>%
+                   pull(SA1_MAINCODE_2016) %>%
+                   get_heat_vulnerability_index() %>%
+                   map_heat_vulnerability_index() %>%
+                   add_hvi_css()
                  
                  print('Getting UVCA')
                  
                  uvca_resp <-
-                   future({
-                     found_address %>%
-                       dplyr::pull(MB_2016_CODE) %>%
-                       get_urban_vegetation_cover_all() %>%
-                       map_urban_vegetation_cover_all() %>%
-                       add_uvca_css()
-                   })
-                 
-                 api_data <-
-                   reactive({
-                     list(
-                       hvi_resp = value(hvi_resp),
-                       uhi_resp = value(uhi_resp),
-                       uvca_resp = value(uvca_resp)
-                     )
-                   })
-                 
-                 observeEvent(api_data(), {
-                   print('data downloaded!')
-                   shinybusy::remove_modal_spinner()
-                   updateNavbarPage(inputId = 'main', selected = 'results')
-                   leaflet_flyTo_address(mapId = 'address_map', 
-                                         label = address_text,
-                                         found_address = found_address)
-                 })
+                   found_address %>%
+                   dplyr::pull(MB_2016_CODE) %>%
+                   get_urban_vegetation_cover_all() %>%
+                   map_urban_vegetation_cover_all() %>%
+                   add_uvca_css()
                  
                  # Insert UIs
                  # UHI ----
@@ -292,12 +265,12 @@ server <- function(input, output, session) {
                                   reactableOutput('uhi_results_desktop'))
                  
                  output$uhi_results_mobile <- renderUI({
-                   uhi_resp %...>% 
+                   uhi_resp %>% 
                      create_mobile_results()
                  })
                  
                  output$uhi_results_desktop <- renderReactable({
-                   uhi_resp %...>%
+                   uhi_resp %>% 
                      uhi_reactable()
                  })
                  
@@ -311,12 +284,12 @@ server <- function(input, output, session) {
                                   reactableOutput('hvi_results_desktop'))
                  
                  output$hvi_results_mobile <- renderUI({
-                   hvi_resp %...>% 
+                   hvi_resp %>% 
                      create_mobile_results()
                  })
                  
                  output$hvi_results_desktop <- renderReactable({
-                   hvi_resp %...>%
+                   hvi_resp %>% 
                      hvi_reactable()
                  })
                  
@@ -330,25 +303,27 @@ server <- function(input, output, session) {
                                   reactableOutput('uvca_results_desktop'))
                  
                  
-                 
                  output$uvca_results_mobile <- renderUI({
-                   uvca_resp %...>% 
+                   uvca_resp %>%  
                      create_mobile_results()
                  })
                  
                  output$uvca_results_desktop <- renderReactable({
-                   uvca_resp %...>%
+                   uvca_resp %>% 
                      uvca_reactable()
                  })
                  
                  outputOptions(output, "uvca_results_mobile", suspendWhenHidden = FALSE)
                  outputOptions(output, "uvca_results_desktop", suspendWhenHidden = FALSE)
                  
+                 shinybusy::remove_modal_spinner()
+                 
+                 updateNavbarPage(inputId = 'main', selected = 'results')
+                 
+                 leaflet_flyTo_address(mapId = 'address_map', 
+                                       label = address_text,
+                                       found_address = found_address)
                })
-  
-  
-  
-  
   
   
   
