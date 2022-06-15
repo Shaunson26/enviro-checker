@@ -39,7 +39,7 @@ address_selectizeInput_ui <-
 ui <-
   navbarPage(
     title = NULL,
-    windowTitle = 'Enviro-checker',
+    windowTitle = 'Heati-Greeni-Info',
     id = 'main',
     header =
       tags$head(
