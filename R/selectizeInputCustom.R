@@ -5,7 +5,7 @@
 #' 
 #' @param id The input slot that will be used to access the value.
 #' @param label Display label for the control, or NULL for no label.
-selectizeInputCustom <- function(id, label) {
+selectizeInputCustom <- function(id, label, placeholder) {
   
   score_function <-
     "function scoreFilter(search) {
@@ -32,11 +32,15 @@ selectizeInputCustom <- function(id, label) {
       };
     }"
   
+  if (missing(placeholder)){
+    placeholder = sprintf('input a %s', tolower(label))
+  }
+  
   selectizeInput(
     inputId = id,
     label = p(label),
     choices = NULL,
-    options = list(placeholder = sprintf('type and select a %s', tolower(label)),
+    options = list(placeholder = placeholder,
                    selectOnTab = TRUE,
                    #maxOptions = 10,
                    score = base::I(score_function))

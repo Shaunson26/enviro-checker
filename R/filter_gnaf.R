@@ -1,7 +1,7 @@
 filter_gnaf <- function(x, inputs, test = FALSE){
   
   if (test) {
-    input <-
+    inputs <-
       list(number = 37,
            street = 'ST PAULS CRESCENT',
            suburb = 'LIVERPOOL',

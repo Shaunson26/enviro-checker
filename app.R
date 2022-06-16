@@ -3,9 +3,11 @@ library(htmltools)
 library(shinyjs)
 library(magrittr)
 library(shinybusy)
+library(shinyWidgets)
 library(dplyr)
 library(leaflet)
 library(reactable)
+library(sf)
 
 for (x in list.files('R/', full.names = T)) {
   source(x)
@@ -14,8 +16,15 @@ for (x in list.files('R/', full.names = T)) {
 
 gnaf <- readRDS('data/gnaf.rda')
 
+places <- 
+  read.csv('data/places.csv') %>% 
+  dplyr::mutate(MB_2016_CODE = as.character(MB_2016_CODE))
+
+#load('data/mb2016_to_sa12016.rda')
+
 gnaf_unique_column_list <-
   list(
+    place = c(NA, places$Name),
     number = unique_input_values(gnaf$NUMBER_FIRST),
     street = unique_input_values(gnaf$STREET_NAME),
     suburb = unique_input_values(gnaf$LOCALITY_NAME),
@@ -25,10 +34,21 @@ gnaf_unique_column_list <-
 # Widgets ----
 address_selectizeInput_ui <-
   tagList(
-    selectizeInputCustom(id = 'number', label = 'Street number'),
-    selectizeInputCustom(id = 'street', label = 'Street name'),
-    selectizeInputCustom(id = 'suburb', label = 'Suburb name'),
-    selectizeInputCustom(id = 'postcode', label =  'Postcode')
+    div(id='place-address-slider-container',
+        style = 'display: flex;',
+        shinyWidgets::materialSwitch(inputId = "slider_place", width = '50px'),
+        p('Address or place?', style = 'padding-left: 8px; font-weight: 700; '),
+        htmltools::tags$style('label[for="slider_place"] {background-color: #FCF4D9;}')
+    ),
+    div(id='place-inputs', style='display:none;',
+        selectizeInputCustom(id = 'place', label = 'A place', placehold = 'Select a place'),
+    ),
+    div(id='address-inputs',
+        selectizeInputCustom(id = 'number', label = 'Street number'),
+        selectizeInputCustom(id = 'street', label = 'Street name'),
+        selectizeInputCustom(id = 'suburb', label = 'Suburb name'),
+        selectizeInputCustom(id = 'postcode', label =  'Postcode')
+    )
   )
 
 # UI ----
@@ -133,7 +153,22 @@ ui <-
 # Server ----
 server <- function(input, output, session) {
   
+  
   shinyjs::onclick('about-app', { info_onclick_modal(app_text) })
+  
+  observeEvent(input$slider_place, 
+               ignoreInit = TRUE,
+               handlerExpr =  {
+                 
+                 if (input$slider_place){
+                   shinyjs::hideElement(id = 'address-inputs', anim = TRUE )
+                   shinyjs::showElement(id = 'place-inputs', anim = TRUE)
+                 } else {
+                   shinyjs::showElement(id = 'address-inputs', anim = TRUE)
+                   shinyjs::hideElement(id = 'place-inputs', anim = TRUE)
+                 }
+                 
+               })
   
   # Initialize drop-downs
   reset_values(session = session, list = gnaf_unique_column_list)
@@ -162,11 +197,13 @@ server <- function(input, output, session) {
   observeEvent(selection_listeners(),
                ignoreInit = TRUE,
                handlerExpr =  {
+                 
                  # TODO updating after selection
                  inputs_need_selection <-
                    unlist(selection_listeners()) == ''
                  
                  if (any(inputs_need_selection)) {
+                   
                    triggerSelectionUpdate(Sys.time())
                  }
                  
@@ -196,7 +233,14 @@ server <- function(input, output, session) {
   
   observeEvent(input$search, {
     
-    inputs <- unlist(selection_listeners())
+    # place or address
+    if (input$slider_place){
+      inputs <- unlist(input$place)
+    } else {
+      inputs <- unlist(selection_listeners())
+    }
+    
+    # verify
     
     if (any(inputs == '')) {
       showModal(please_compete_address_fields_modal())
@@ -213,16 +257,33 @@ server <- function(input, output, session) {
                  
                  load('data/mb2016_to_sa12016.rda')
                  
-                 found_address <-
-                   gnaf_subset() %>%
-                   filter_gnaf(inputs = selection_listeners(), test = FALSE) %>% 
-                   dplyr::mutate(LONGITUDE = LONGITUDE / 10000,
-                                 LATITUDE = LATITUDE / 10000) %>%
-                   dplyr::left_join(mb2016_to_sa12016, by = c('MB_2016_CODE' = 'MB_CODE_2016'))
+                 # Address or place
+                 if (input$slider_place){
+                   
+                   found_address <- 
+                     places %>% 
+                     dplyr::filter(Name == input$place) %>% 
+                     dplyr::mutate(LONGITUDE = LONGITUDE / 10000,
+                                   LATITUDE = LATITUDE / 10000) %>%
+                     dplyr::left_join(mb2016_to_sa12016, by = c('MB_2016_CODE' = 'MB_CODE_2016'))
+                   
+                   address_text <- found_address$Name
+                   
+                 } else {
+                   
+                   found_address <-
+                     gnaf_subset() %>%
+                     filter_gnaf(inputs = selection_listeners()) %>% 
+                     dplyr::mutate(LONGITUDE = LONGITUDE / 10000,
+                                   LATITUDE = LATITUDE / 10000) %>%
+                     dplyr::left_join(mb2016_to_sa12016, by = c('MB_2016_CODE' = 'MB_CODE_2016'))
+                   
+                   address_text <- create_address_text(found_address)
+                 }
                  
                  print('Results')
                  
-                 address_text <- create_address_text(found_address)
+                 #address_text <- create_address_text(found_address)
                  
                  output$address_text <- renderText({
                    address_text
@@ -235,42 +296,58 @@ server <- function(input, output, session) {
                  uhi_resp <-
                    found_address %>%
                    dplyr::pull(MB_2016_CODE) %>%
-                   get_urban_heat_island_value() %>%
-                   map_urban_heat_island_value() %>%
-                   add_uhi_css()
+                   get_urban_heat_island_value(returnGeometry = TRUE)
                  
                  print('Getting UVI')
                  
                  hvi_resp <-
                    found_address %>%
                    pull(SA1_MAINCODE_2016) %>%
-                   get_heat_vulnerability_index() %>%
-                   map_heat_vulnerability_index() %>%
-                   add_hvi_css()
+                   get_heat_vulnerability_index(returnGeometry = TRUE)
+                 
                  
                  print('Getting UVCA')
                  
                  uvca_resp <-
                    found_address %>%
                    dplyr::pull(MB_2016_CODE) %>%
-                   get_urban_vegetation_cover_all() %>%
+                   get_urban_vegetation_cover_all()
+                 
+                 # Wrangle
+                 uhi_final <-
+                   uhi_resp %>% 
+                   map_urban_heat_island_value() %>%
+                   add_uhi_css()
+                 
+                 hvi_final <-
+                   hvi_resp %>% 
+                   map_heat_vulnerability_index() %>%
+                   add_hvi_css()
+                 
+                 uvca_final <-
+                   uvca_resp %>% 
                    map_urban_vegetation_cover_all() %>%
                    add_uvca_css()
+                 
+                 boundaries <-
+                   lapply(list(hvi_resp, uhi_resp), geometry_to_sf) %>% 
+                   do.call(dplyr::bind_rows, .)
                  
                  # Insert UIs
                  # UHI ----
                  insert_result_ui(title = 'Urban heat island', 
                                   id_container = 'uhi-container', id_info = 'uhi-info', 
+                                  p('How much warmer than a non-vegetated reference area.'),
                                   htmlOutput("uhi_results_mobile", class = 'mobile-result-container'),
                                   reactableOutput('uhi_results_desktop'))
                  
                  output$uhi_results_mobile <- renderUI({
-                   uhi_resp %>% 
+                   uhi_final %>% 
                      create_mobile_results()
                  })
                  
                  output$uhi_results_desktop <- renderReactable({
-                   uhi_resp %>% 
+                   uhi_final %>% 
                      uhi_reactable()
                  })
                  
@@ -279,17 +356,18 @@ server <- function(input, output, session) {
                  
                  # HVI ----
                  insert_result_ui(title = 'Heat vulnerability index', 
-                                  id_container = 'hiv-container', id_info = 'hvi-info', 
+                                  id_container = 'hvi-container', id_info = 'hvi-info',
+                                  p('Indicators relating to the vulnerablity of adverse effects of urban heat.'),
                                   htmlOutput("hvi_results_mobile", class = 'mobile-result-container'),
                                   reactableOutput('hvi_results_desktop'))
                  
                  output$hvi_results_mobile <- renderUI({
-                   hvi_resp %>% 
+                   hvi_final %>% 
                      create_mobile_results()
                  })
                  
                  output$hvi_results_desktop <- renderReactable({
-                   hvi_resp %>% 
+                   hvi_final %>% 
                      hvi_reactable()
                  })
                  
@@ -299,17 +377,18 @@ server <- function(input, output, session) {
                  # UVCA ----
                  insert_result_ui(title = 'Urban vegetation cover', 
                                   id_container = 'uvca-container', id_info = 'uvca-info', 
+                                  p('Percentage of vegetation cover.'),
                                   htmlOutput("uvca_results_mobile", class = 'mobile-result-container'),
                                   reactableOutput('uvca_results_desktop'))
                  
                  
                  output$uvca_results_mobile <- renderUI({
-                   uvca_resp %>%  
+                   uvca_final %>%  
                      create_mobile_results()
                  })
                  
                  output$uvca_results_desktop <- renderReactable({
-                   uvca_resp %>% 
+                   uvca_final %>% 
                      uvca_reactable()
                  })
                  
@@ -322,7 +401,9 @@ server <- function(input, output, session) {
                  
                  leaflet_flyTo_address(mapId = 'address_map', 
                                        label = address_text,
-                                       found_address = found_address)
+                                       found_address = found_address,
+                                       boundaries = boundaries)
+                 
                })
   
   
@@ -332,15 +413,18 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$back, {
-    reset_values(session = session, list = gnaf_unique_column_list)
-    
-    updateNavbarPage(inputId = 'main', selected = 'select-address')
-    
-    leaflet_clearMarkers(mapId = "address_map")
     
     removeUI('#uhi-container')
     removeUI('#hvi-container')
     removeUI('#uvca-container')
+    
+    reset_values(session = session, list = gnaf_unique_column_list)
+    
+    updateNavbarPage(inputId = 'main', selected = 'select-address')
+    
+    # TODO rename
+    leaflet_clearMarkers(mapId = "address_map")
+   
   })
   
   shinyjs::onclick('map-info', { info_onclick_modal(map_text) })

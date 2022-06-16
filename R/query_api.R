@@ -6,12 +6,14 @@
 #' @param where_query_string string, where clause e.g. "SA1_MAIN16=123456"
 #'
 #' @export
-query_api <- function(url, where_query_string){
+query_api <- function(url, where_query_string, returnGeometry = FALSE){
+  
+  returnGeometry = ifelse(returnGeometry, 'true', 'false')
 
   resp <-
     httr2::request(url) %>%
     httr2::req_url_query(f='pjson',
-                         returnGeometry='false',
+                         returnGeometry=returnGeometry,
                          outFields="*",
                          where=where_query_string) %>%
     httr2::req_perform()

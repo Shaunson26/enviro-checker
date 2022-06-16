@@ -14,13 +14,14 @@
 #' @param mb text, Mesh block 2016 code
 #'
 #' @export
-get_urban_heat_island_value <- function(mb){
+get_urban_heat_island_value <- function(mb, returnGeometry = FALSE){
 
   # stopifnot(
   #   'Only 1 value can in input' = length(mb) == 1,
   #   'MB code not known' = mb %in% mb2016_to_sa12016$MB_CODE_2016)
 
   query_api(url = service_urls$urban_heat_island_value,
-            where_query_string = sprintf("MB_CODE16='%s'", mb))
+            where_query_string = sprintf("MB_CODE16='%s'", mb),
+            returnGeometry = returnGeometry)
 
 }

@@ -1,0 +1,8 @@
+Name,LONGITUDE,LATITUDE,MB_2016_CODE,LGA,Region,District,LandType,MB_Reclass
+Sydney CDB,1512060,-338731,10742330000,Sydney,Greater Sydney,Eastern City,Private,Commercial
+Hyde Park,1512115,-338717,10742810000,Sydney,Greater Sydney,Eastern City,Public,Parkland
+University of NSW,1512310,-339169,10643270000,Randwick,Greater Sydney,Eastern City,Public,Education
+Sydney Airport,1511752,-339402,10134785000,Bayside,Greater Sydney,Eastern City,Public,Transport
+Blue Mountains,1504583,-336152,10127862000,Blue Mountains,Greater Sydney,Western City,Public,Parkland
+Western Sydney - Penrith,1506909,-337509,10615360000,Penrith,Greater Sydney,Western City,Private,Commercial
+South Sydney - Cronulla,1511537,-340533,10723320000,Sutherland Shire,Greater Sydney,South,Private,Residential

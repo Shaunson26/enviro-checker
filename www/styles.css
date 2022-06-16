@@ -69,6 +69,7 @@ nav {
 #select-address-selectize-subcontainer {
   background-color: #00AAA0;
   padding:16px;
+  min-width: 300px;
 }
 
 #select-address-button-container {

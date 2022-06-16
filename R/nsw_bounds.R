@@ -18,3 +18,24 @@ nsw_bounds <- function(map, flyThere = F) {
     )
   }
 }
+
+sydney_bounds <- function(map, flyThere = F){
+  #149.93243 -34.84009 151.95499 -32.69878 
+  if (flyThere) {
+    flyToBounds(
+      map = map,
+      lng1 = 149.5,
+      lng2 = 152.5,
+      lat1 = -35,
+      lat2 = -32
+    )
+  } else {
+    fitBounds(
+      map = map,
+      lng1 = 149.5,
+      lng2 = 152.5,
+      lat1 = -35,
+      lat2 = -32
+    )
+  }
+}
